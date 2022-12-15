@@ -1,11 +1,12 @@
 package org.lang.flower;
 
+import org.lang.flower.ast.AstFunctionCall;
+
+
 public class Main {
-
-    static Lexer lexer = new Lexer("print(1111.2333)");
-
     public static void main(String[] args) {
-        for(Token token = lexer.getNextToken(); token != null; token = lexer.getNextToken())
-            System.out.println(token);
+        Parser parser = new Parser("print(9,1,3,\"hello\")");
+        AstFunctionCall ast = parser.parseFunctionCall();
+        System.out.println(ast);
     }
 }
