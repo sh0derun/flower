@@ -12,7 +12,8 @@ public enum TokenType{
     PLUS("+"),
     MINUS("-"),
     STRING_LITERAL("STRING_LITERAL"),
-    NUMBER("");
+    NUMBER("NUMBER"),
+    COLON(",");
 
     private String value;
 

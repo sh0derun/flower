@@ -41,16 +41,13 @@ public class Lexer {
             if (current == ' ')
                 checkSpace();
             if (Character.isDigit(current)) {
-                return buildNumberToken();
+                return buildTokenFromPattern(TokenType.NUMBER, "[0-9]+(\\.[0-9]+)?");
             }
-            if (Pattern.matches("^[A-Za-z0-9]$", "" + current)) {
-                return buildToken(c -> Pattern.matches("^[A-Za-z0-9]$", "" + c), TokenType.ID);
+            if (Character.isAlphabetic(current)) {
+                return buildToken(c -> Pattern.matches("^[A-Za-z0-9]$", "" + c));
             }
             if (current == '"') {
-                advance();
-                Token string = buildToken(c -> c != '"', TokenType.STRING_LITERAL);
-                advance();
-                return string;
+                return buildTokenFromPattern(TokenType.STRING_LITERAL, "\"[A-Za-z0-9]*\"");
             }
             switch (current) {
                 case '+': {
@@ -68,6 +65,9 @@ public class Lexer {
                 case ')': {
                     return buildToken(TokenType.RIGHTPAR, ")");
                 }
+                case ',': {
+                    return buildToken(TokenType.COLON, ",");
+                }
                 default:
                     assert false : "unexpected token, found : " + current;
             }
@@ -80,36 +80,48 @@ public class Lexer {
         return new Token(type, operator);
     }
 
-    private Token buildNumberToken() {
+    private Token buildTokenFromPattern(TokenType type, String regex) {
         Token token = new Token();
-        token.type = TokenType.NUMBER;
+        token.type = type;
         String res = code.substring(cursor);
-        Pattern pattern = Pattern.compile("[0-9]+(\\.[0-9]+)?");
+        Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(res);
         if (matcher.find() && cursor < code.length()) {
             String group = matcher.group();
             token.value += group;
             advance(group.length());
+        } else {
+            assert !TokenType.STRING_LITERAL.equals(type) : "illegal string literal ending";
         }
         return token;
     }
 
-    private Token buildToken(Predicate<Character> p, TokenType type) {
+    private Token buildToken(Predicate<Character> p) {
         StringBuilder builder = new StringBuilder();
         while (p.test(current) && cursor < code.length()) {
             builder.append(current);
             advance();
         }
 
-        Token token = new Token(type, builder.toString());
+        Token token = new Token(TokenType.ID, builder.toString());
 
         TokenType.fromValue(token.value).ifPresent(tp -> {
             switch (tp) {
+                case ID:
+                    break;
                 case LET:
                     token.type = TokenType.LET;
                     break;
                 case PRINT:
                     token.type = TokenType.PRINT;
+                    break;
+                case LEFTPAR:
+                case RIGHTPAR:
+                case EQU:
+                case PLUS:
+                case MINUS:
+                case STRING_LITERAL:
+                case NUMBER:
                     break;
                 default:
                     System.out.println(tp);
