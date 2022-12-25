@@ -1,6 +1,5 @@
 package org.lang.flower;
 
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,7 +46,7 @@ public class Lexer {
                 return buildToken(c -> Pattern.matches("^[A-Za-z0-9]$", "" + c));
             }
             if (current == '"') {
-                return buildTokenFromPattern(TokenType.STRING_LITERAL, "\"[A-Za-z0-9]*\"");
+                return buildTokenFromPattern(TokenType.STRING_LITERAL, "\"[A-Za-z0-9 ]*\"");
             }
             switch (current) {
                 case '+': {
