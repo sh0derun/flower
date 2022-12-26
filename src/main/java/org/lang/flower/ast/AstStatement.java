@@ -1,10 +1,10 @@
 package org.lang.flower.ast;
 
 public abstract class AstStatement {
-    protected String name;
+    public String name;
 
-    enum StatementType {
+    public enum StatementType {
         FUNCTION_CALL
     }
-    protected StatementType type;
+    public StatementType type;
 }

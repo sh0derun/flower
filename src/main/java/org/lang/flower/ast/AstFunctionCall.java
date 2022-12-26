@@ -1,10 +1,10 @@
 package org.lang.flower.ast;
 
-public class AstFunctionCall extends AstStatement {
+public class AstFunctionCall <T> extends AstStatement {
 
-    AstFunctionDefinition definition;
+    public AstFunctionDefinition definition;
 
-    public AstFunctionArgument argument;
+    public AstFunctionArgument<T> argument;
 
     public AstFunctionCall(String name){
         this.name = name;

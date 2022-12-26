@@ -12,9 +12,9 @@ public class Parser {
         lexer = new Lexer(code);
     }
 
-    public AstFunctionCall parseFunctionCall() {
+    public AstFunctionCall<Object> parseFunctionCall() {
         Token functionName = expectFunctionName();
-        AstFunctionCall ast = new AstFunctionCall(functionName.value);
+        AstFunctionCall<Object> ast = new AstFunctionCall(functionName.value);
 
         expectLeftParent();
 
