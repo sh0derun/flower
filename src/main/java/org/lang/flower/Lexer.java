@@ -87,7 +87,7 @@ public class Lexer {
         Matcher matcher = pattern.matcher(res);
         if (matcher.find() && cursor < code.length()) {
             String group = matcher.group();
-            token.value += group.substring(1, group.length()-1);
+            token.value += TokenType.STRING_LITERAL.equals(type) ? group.substring(1, group.length()-1) : group;
             advance(group.length());
         } else {
             assert !TokenType.STRING_LITERAL.equals(type) : "illegal string literal ending";
