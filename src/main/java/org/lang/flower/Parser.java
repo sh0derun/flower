@@ -1,7 +1,9 @@
 package org.lang.flower;
 
+import org.lang.flower.ast.AstAssignment;
 import org.lang.flower.ast.AstFunctionArgument;
 import org.lang.flower.ast.AstFunctionCall;
+import org.lang.flower.ast.Expression;
 
 public class Parser {
 
@@ -12,8 +14,25 @@ public class Parser {
         lexer = new Lexer(code);
     }
 
+    public AstAssignment parseAssignment() {
+        expectLet();
+        Token identifier = expectIdentifier();
+        expectEqu();
+        Token literalValue = expectLiteralValue();
+        Expression.ExpressionType expressionType = null;
+        if(TokenType.NUMBER.equals(literalValue.type)) {
+            expressionType = Expression.ExpressionType.NUMBER_LITERAL;
+        } else if(TokenType.STRING_LITERAL.equals(literalValue.type)) {
+            expressionType = Expression.ExpressionType.STRING_LITERAL;
+        } else {
+            assert false : "Unreachable";
+        }
+        AstAssignment assignment = new AstAssignment(identifier.value, expressionType, literalValue.value);
+        return assignment;
+    }
+
     public AstFunctionCall<Object> parseFunctionCall() {
-        Token functionName = expectFunctionName();
+        Token functionName = expectIdentifier();
         AstFunctionCall<Object> ast = new AstFunctionCall(functionName.value);
 
         expectLeftParent();
@@ -58,28 +77,44 @@ public class Parser {
         argument.value = token.value;
     }
 
-    private Token expectFunctionName() {
+    private Token expectIdentifier() {
         Token token = lexer.getNextToken();
-        assert TokenType.ID.equals(token.type) || TokenType.PRINT.equals(token.type) : "function name expected, found '" + token.type +"'";
+        assert TokenType.ID.equals(token.type) || TokenType.PRINT.equals(token.type) : "identifier expected, found '" + token.value +"'";
         return token;
     }
 
     private Token expectLeftParent() {
         Token token = lexer.getNextToken();
-        assert TokenType.LEFTPAR.equals(token.type) : "left parenthesis " + TokenType.LEFTPAR.getValue() + " expected, found '" + token.type+"'";
+        assert TokenType.LEFTPAR.equals(token.type) : "left parenthesis " + TokenType.LEFTPAR.getValue() + " expected, found '" + token.value+"'";
         return token;
     }
 
     private Token expectRightParent() {
         Token token = lexer.getNextToken();
-        assert TokenType.RIGHTPAR.equals(token.type) : "right parenthesis  " + TokenType.RIGHTPAR.getValue() + " expected, found '" + token.type+"'";
+        assert TokenType.RIGHTPAR.equals(token.type) : "right parenthesis  " + TokenType.RIGHTPAR.getValue() + " expected, found '" + token.value+"'";
         return token;
     }
 
     private Token expectColon() {
         Token token = lexer.getNextToken();
-        assert TokenType.COLON.equals(token.type) : "colon  " + TokenType.COLON.getValue() + " expected, found '" + token.type+"'";
+        assert TokenType.COLON.equals(token.type) : "colon  " + TokenType.COLON.getValue() + " expected, found '" + token.value+"'";
         return token;
+    }
+
+    private Token expectLiteralValue() {
+        Token token = lexer.getNextToken();
+        assert TokenType.NUMBER.equals(token.type) || TokenType.STRING_LITERAL.equals(token.type) : "'=' expected, found '"+token.value;
+        return token;
+    }
+
+    private void expectEqu() {
+        Token token = lexer.getNextToken();
+        assert TokenType.EQU.equals(token.type) : "'=' expected, found '"+token.value;
+    }
+
+    private void expectLet() {
+        Token token = lexer.getNextToken();
+        assert TokenType.LET.equals(token.type) : "let expected, found '"+token.value;
     }
 
 }
