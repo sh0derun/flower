@@ -40,13 +40,13 @@ public class Lexer {
             if (current == ' ')
                 checkSpace();
             if (Character.isDigit(current)) {
-                return buildTokenFromPattern(TokenType.NUMBER, "[0-9]+(\\.[0-9]+)?");
+                return buildTokenFromPattern(TokenType.NUMBER, "^[0-9]+(\\.[0-9]+)?");
             }
             if (Character.isAlphabetic(current)) {
                 return buildToken(c -> Pattern.matches("^[A-Za-z0-9]$", "" + c));
             }
             if (current == '"') {
-                return buildTokenFromPattern(TokenType.STRING_LITERAL, "\"[A-Za-z0-9 ]*\"");
+                return buildTokenFromPattern(TokenType.STRING_LITERAL, "\".*\"");
             }
             switch (current) {
                 case '+': {
@@ -90,7 +90,13 @@ public class Lexer {
             token.value += TokenType.STRING_LITERAL.equals(type) ? group.substring(1, group.length()-1) : group;
             advance(group.length());
         } else {
-            assert !TokenType.STRING_LITERAL.equals(type) : "illegal string literal ending";
+            if(TokenType.STRING_LITERAL.equals(type)){
+                assert false : "illegal string literal ending, found : "+res;
+            } else if(TokenType.NUMBER.equals(type)) {
+                assert false : "illegal number representation, found : "+res;
+            } else {
+                assert false : "Unreachable token, found : "+res;
+            }
         }
         return token;
     }
