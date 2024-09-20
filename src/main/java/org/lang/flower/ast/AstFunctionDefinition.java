@@ -1,8 +1,8 @@
 package org.lang.flower.ast;
 
-public class AstFunctionDefinition extends AstDeclaration {
+public class AstFunctionDefinition<T> extends AstDeclaration {
 
-    AstDefinitionBlock block;
+    AstDefinitionBlock<T> block;
 
     AstFunctionDefinition(String name){
         this.name = name;

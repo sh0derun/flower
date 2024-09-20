@@ -7,8 +7,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class Main {
@@ -18,7 +16,7 @@ public class Main {
         }
 
         String inputFile = args[0];
-        Optional<String> code = Optional.empty();
+        Optional<String> code;
 
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(inputFile))) {
             code = bufferedReader.lines().reduce((s, s2) -> s +"\n"+ s2);
@@ -27,10 +25,8 @@ public class Main {
         }
 
         Parser parser = new Parser(code.orElseThrow());
-        AstFunctionCall<Object> ast = parser.parseFunctionCall();
-        System.out.println(ast);
 
-        String asm = Compiler.compileAstToAsm(ast);
+        String asm = Compiler.compileAstToAsm(parser.parseFunctionCall());
         System.out.println(asm);
 
         String assemblyFileName = "code";

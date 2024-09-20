@@ -1,6 +1,6 @@
 package org.lang.flower.ast;
 
-public class AstDefinitionBlock {
+public class AstDefinitionBlock <T> {
     AstStatement statement;
     AstDefinitionBlock block;
 }

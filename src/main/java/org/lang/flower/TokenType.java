@@ -6,6 +6,7 @@ public enum TokenType{
     ID("id"),
     LET("let"),
     PRINT("print"),
+    VOID("void"),
     LEFTPAR("("),
     RIGHTPAR(")"),
     EQU("="),

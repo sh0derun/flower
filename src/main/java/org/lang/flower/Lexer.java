@@ -46,7 +46,7 @@ public class Lexer {
                 return buildToken(c -> Pattern.matches("^[A-Za-z0-9]$", "" + c));
             }
             if (current == '"') {
-                return buildTokenFromPattern(TokenType.STRING_LITERAL, "\".*\"");
+                return buildTokenFromPattern(TokenType.STRING_LITERAL, "\\\"[^\"\\\\\\\\]*\\\"");
             }
             switch (current) {
                 case '+': {
@@ -120,6 +120,8 @@ public class Lexer {
                 case PRINT:
                     token.type = TokenType.PRINT;
                     break;
+                case VOID:
+                    token.type = TokenType.VOID;
                 case LEFTPAR:
                 case RIGHTPAR:
                 case EQU:
