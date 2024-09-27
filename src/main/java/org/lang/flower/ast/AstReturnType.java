@@ -1,7 +1,7 @@
 package org.lang.flower.ast;
 
 public enum AstReturnType {
-    VOID("void");
+    VOID("void"), INT("int"), BOOLEAN("bool"), STRING("str"), CHARACTER("char");
 
     private String value;
 

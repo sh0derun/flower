@@ -2,6 +2,9 @@ package org.lang.flower;
 
 import org.lang.flower.ast.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Parser {
 
     Lexer lexer;
@@ -30,12 +33,91 @@ public class Parser {
 
     public AstFunctionDefinition<Object> parseFunctionDefinition() {
         Token returnType = expectReturnType();
-        return null;
+        Token id = expectIdentifier();
+        List<AstFunctionParameter> parameters = parseFunctionParameters();
+        List<AstStatement> statements = parseFunctionBody();
+        return new AstFunctionDefinition<Object>(AstReturnType.getValueFromName(returnType.value), id.value, parameters,statements);
+    }
+
+    private List<AstStatement> parseFunctionBody() {
+        List<AstStatement> body = new ArrayList<>();
+        expectLeftCurlyBrace();
+        while(!check(TokenType.RIGHT_CURLY_BRACE)){
+            AstStatement statement = parseStatement();
+            body.add(statement);
+        }
+        expectRightCurlyBrace();
+        return body;
+    }
+
+    private AstStatement parseStatement() {
+        AstStatement statement = null;
+        if(check(TokenType.LET)){
+            statement = parseAssignment();
+        } else if(check(TokenType.PRINT)){
+            statement = parseFunctionCall();
+        }else{
+            Token token = lexer.getNextToken();
+            assert false : "unexpected token: "+token.value+" at "+lexer.line+","+lexer.column;
+        }
+        return statement;
+    }
+
+    private void expectRightCurlyBrace() {
+        Token token = lexer.getNextToken();
+        assert TokenType.RIGHT_CURLY_BRACE.equals(token.type) : "'}' expected, found '" + token.value + "'";
+    }
+
+    private void expectLeftCurlyBrace() {
+        Token token = lexer.getNextToken();
+        assert TokenType.LEFT_CURLY_BRACE.equals(token.type) : "'{' expected, found '" + token.value + "'";
+    }
+
+    private List<AstFunctionParameter> parseFunctionParameters() {
+        List<AstFunctionParameter> parameters = new ArrayList<>();
+        expectLeftParent();
+        if(!check(TokenType.RIGHTPAR)){
+            Token paramType = expectType();
+            Token paramName = expectIdentifier();
+            parameters.add(new AstFunctionParameter(paramName.value, paramType.value));
+            while(match(TokenType.COMMA)){
+                paramType = expectType();
+                paramName = expectIdentifier();
+                parameters.add(new AstFunctionParameter(paramName.value, paramType.value));
+            }
+        }
+        expectRightParent();
+        return parameters;
+    }
+
+    private Token expectType() {
+        Token token = lexer.getNextToken();
+        boolean isInTypes = TokenType.INT == token.type || TokenType.STRING == token.type || TokenType.BOOLEAN == token.type || TokenType.CHARACTER == token.type;
+        assert isInTypes : "Expected parameter type, found '"+token.value+"' at "+lexer.line+","+lexer.column;
+        return token;
+    }
+
+    private boolean check(TokenType type) {
+        Token token = lexer.peekNextToken();
+        return token != null && type == token.type;
+    }
+
+    private boolean match(TokenType type){
+        if(check(type)){
+            lexer.getNextToken();
+            return true;
+        }
+        return false;
     }
 
     private Token expectReturnType() {
         Token token = lexer.getNextToken();
-        System.out.println(AstReturnType.valueOf(token.value));
+        boolean isInTypes = TokenType.VOID == token.type ||
+                            TokenType.INT == token.type ||
+                            TokenType.STRING == token.type ||
+                            TokenType.BOOLEAN == token.type ||
+                            TokenType.CHARACTER == token.type;
+        assert isInTypes : "Expected  type, found '"+token.value+"' at "+lexer.line+","+lexer.column;
         return token;
     }
 
@@ -46,7 +128,7 @@ public class Parser {
         expectLeftParent();
 
         Token token = lexer.getNextToken();
-        assert !TokenType.COLON.equals(token.type) : "argument expected, found '" + TokenType.COLON.getValue() + "'";
+        assert !TokenType.COMMA.equals(token.type) : "argument expected, found '" + TokenType.COMMA.getValue() + "'";
         assert TokenType.STRING_LITERAL.equals(token.type) || TokenType.NUMBER.equals(token.type) : "unsupported argument type";
         AstFunctionArgument<Object> argument = null;
 
@@ -66,7 +148,7 @@ public class Parser {
 
             token = lexer.getNextToken();
 
-            if (token.type == TokenType.COLON) {
+            if (token.type == TokenType.COMMA) {
                 token = lexer.getNextToken();
                 assert token.type != TokenType.RIGHTPAR : "argument expected, found '" + TokenType.RIGHTPAR.getValue() + "'";
             }
@@ -105,7 +187,7 @@ public class Parser {
 
     private Token expectColon() {
         Token token = lexer.getNextToken();
-        assert TokenType.COLON.equals(token.type) : "colon  " + TokenType.COLON.getValue() + " expected, found '" + token.value + "'";
+        assert TokenType.COMMA.equals(token.type) : "colon  " + TokenType.COMMA.getValue() + " expected, found '" + token.value + "'";
         return token;
     }
 
@@ -117,7 +199,7 @@ public class Parser {
 
     private void expectEqu() {
         Token token = lexer.getNextToken();
-        assert TokenType.EQU.equals(token.type) : "'=' expected, found '" + token.value;
+        assert TokenType.ASSING.equals(token.type) : "'=' expected, found '" + token.value;
     }
 
     private void expectLet() {

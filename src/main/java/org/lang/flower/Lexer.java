@@ -9,35 +9,90 @@ public class Lexer {
     String code;
     int cursor;
     char current;
+    int line, column;
+    Token peekedToken;
 
     Lexer(String code) {
         this.code = code;
         cursor = 0;
-        current = this.code.charAt(cursor);
-    }
-
-    void advance() {
-        cursor++;
-        if (cursor < code.length()) {
-            current = code.charAt(cursor);
+        line = 1;
+        column = 1;
+        if(this.code.isEmpty()){
+            current = '\0';
+        } else{
+            current = this.code.charAt(cursor);
         }
     }
 
-    void advance(int step) {
-        cursor += step;
+    void advance() {
         if (cursor < code.length()) {
-            current = code.charAt(cursor);
+            if(current == '\n'){
+                line++;
+                column = 1;
+            } else{
+                column++;
+            }
+            cursor++;
+            current = cursor < code.length() ? code.charAt(cursor) : '\0';
+        }
+    }
+
+    char peekNext(){
+        if(cursor+1 < code.length()){
+            return code.charAt(cursor+1);
+        }
+        return '\0';
+    }
+
+    Token peekNextToken(){
+        if(peekedToken == null){
+            int cursorTmp = cursor;
+            int lineTmp = line;
+            int columnTmp = column;
+            char currentTmp = current;
+
+            peekedToken = getNextToken();
+
+            cursor = cursorTmp;
+            line = lineTmp;
+            column = columnTmp;
+            current = currentTmp;
+        }
+
+        return peekedToken;
+    }
+
+    void advance(int step) {
+        if (cursor < code.length()) {
+            if(current == '\n'){
+                line++;
+                column = 1;
+            } else{
+                column+=step;
+            }
+            cursor+=step;
+            current = cursor < code.length() ? code.charAt(cursor) : '\0';
         }
     }
 
     void checkSpace() {
-        while (code.charAt(cursor) == ' ')
+        while (cursor < code.length() && (code.charAt(cursor) == ' ' || code.charAt(cursor) == '\n' || code.charAt(cursor) == '\t' || code.charAt(cursor) == '\r'))
             advance();
     }
 
     Token getNextToken() {
+        checkSpace();
+
+        if(peekedToken != null){
+            Token token = peekedToken;
+            peekedToken = null;
+            advance(token.value.length());
+            checkSpace();
+            return token;
+        }
+
         while (cursor < code.length()) {
-            if (current == ' ')
+            if (current == ' ' || current == '\n'|| code.charAt(cursor) == '\t' || code.charAt(cursor) == '\r')
                 checkSpace();
             if (Character.isDigit(current)) {
                 return buildTokenFromPattern(TokenType.NUMBER, "^[0-9]+(\\.[0-9]+)?");
@@ -55,8 +110,42 @@ public class Lexer {
                 case '-': {
                     return buildToken(TokenType.MINUS, "-");
                 }
+                case '/': {
+                    return buildToken(TokenType.DIVIDE, "/");
+                }
+                case '*': {
+                    return buildToken(TokenType.MULIPLY, "*");
+                }
+                case '%': {
+                    return buildToken(TokenType.MODULOS, "%");
+                }
                 case '=': {
-                    return buildToken(TokenType.EQU, "=");
+                    if(peekNext() == '='){
+                        advance();
+                        return buildToken(TokenType.EQUALS, "==");
+                    }
+                    return buildToken(TokenType.ASSING, "=");
+                }
+                case '!': {
+                    if(peekNext() == '='){
+                        advance();
+                        return buildToken(TokenType.NOT_EQUALS, "!=");
+                    }
+                    return buildToken(TokenType.NOT, "!");
+                }
+                case '>': {
+                    if(peekNext() == '='){
+                        advance();
+                        return buildToken(TokenType.GREATER_OR_EQUALS, ">=");
+                    }
+                    return buildToken(TokenType.GREATER, ">");
+                }
+                case '<': {
+                    if(peekNext() == '='){
+                        advance();
+                        return buildToken(TokenType.LESS_OR_EQUALS, "<=");
+                    }
+                    return buildToken(TokenType.LESS, "<");
                 }
                 case '(': {
                     return buildToken(TokenType.LEFTPAR, "(");
@@ -65,13 +154,20 @@ public class Lexer {
                     return buildToken(TokenType.RIGHTPAR, ")");
                 }
                 case ',': {
-                    return buildToken(TokenType.COLON, ",");
+                    return buildToken(TokenType.COMMA, ",");
+                }
+                case '{': {
+                    return buildToken(TokenType.LEFT_CURLY_BRACE, "{");
+                }
+                case '}': {
+                    return buildToken(TokenType.RIGHT_CURLY_BRACE, "}");
                 }
                 default:
                     assert false : "unexpected token, found : " + current;
             }
         }
-        return null;
+        return buildToken(TokenType.EOF, "");
+//        return null;
     }
 
     private Token buildToken(TokenType type, String operator) {
@@ -122,9 +218,22 @@ public class Lexer {
                     break;
                 case VOID:
                     token.type = TokenType.VOID;
+                    break;
+                case INT:
+                    token.type = TokenType.INT;
+                    break;
+                case BOOLEAN:
+                    token.type = TokenType.BOOLEAN;
+                    break;
+                case STRING:
+                    token.type = TokenType.STRING;
+                    break;
+                case CHARACTER:
+                    token.type = TokenType.CHARACTER;
+                    break;
                 case LEFTPAR:
                 case RIGHTPAR:
-                case EQU:
+                case ASSING:
                 case PLUS:
                 case MINUS:
                 case STRING_LITERAL:

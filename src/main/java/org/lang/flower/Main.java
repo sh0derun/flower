@@ -1,6 +1,8 @@
 package org.lang.flower;
 
+import org.lang.flower.ast.AstAssignment;
 import org.lang.flower.ast.AstFunctionCall;
+import org.lang.flower.ast.AstFunctionDefinition;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -25,18 +27,7 @@ public class Main {
         }
 
         Parser parser = new Parser(code.orElseThrow());
-
-        String asm = Compiler.compileAstToAsm(parser.parseFunctionCall());
-        System.out.println(asm);
-
-        String assemblyFileName = "code";
-
-        try (FileWriter fileWriter = new FileWriter(assemblyFileName+".asm")) {
-            fileWriter.append(asm);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        Compiler.assembleAndLink(assemblyFileName);
+        AstFunctionDefinition<Object> astFunctionDefinition = parser.parseFunctionDefinition();
+        System.out.println(astFunctionDefinition);
     }
 }
